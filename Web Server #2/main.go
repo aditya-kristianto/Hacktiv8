@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 var PORT = ":8080"
@@ -14,6 +15,7 @@ func main() {
 	http.HandleFunc("/", greet)
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/users", getUsers)
+	http.HandleFunc("/user", getUser)
 
 	http.ListenAndServe(PORT, nil)
 }
@@ -41,6 +43,23 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseJSON)
+}
+
+func getUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	var user = userService.getUser(id)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +91,7 @@ func (u *service) registerUser(user registerRequest) {
 
 type userSvc interface {
 	registerUser(user registerRequest)
+	getUser(id int) User
 	getUsers() []User
 }
 
@@ -85,6 +105,10 @@ type User struct {
 
 type service struct {
 	users []User `json:"users"`
+}
+
+func (u *service) getUser(id int) User {
+	return u.users[id]
 }
 
 func (u *service) getUsers() []User {
