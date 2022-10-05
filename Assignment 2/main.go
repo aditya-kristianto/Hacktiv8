@@ -20,7 +20,6 @@ type (
 		CustomerName string
 		OrderedAt    time.Time
 		Items        []Item
-		// Item         Item `gorm:"foreignKey:order_id;references:OrderId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	}
 
 	Item struct {
@@ -29,8 +28,7 @@ type (
 		Description string
 		Quantity    int
 		OrderId     uuid.UUID
-		// Order       Order `gorm:"foreignKey:order_id"`
-		// Order       Order `gorm:"references:OrderId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+		// Order       Order `gorm:"foreignKey:order_id;references:id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	}
 
 	OrderRequest struct {
@@ -311,7 +309,26 @@ func deleteOrder(c echo.Context) error {
 		})
 	}
 
-	db.Where("id = ?", orderID).Delete(&Order{})
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err = db.Where("order_id = ?", orderID).Delete(&Item{}).Error
+		if err != nil {
+			return err
+		}
+
+		err = db.Where("id = ?", orderID).Delete(&Order{}).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &Response{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed delete order",
+			Error:   err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, &Response{
 		Status:  http.StatusOK,
