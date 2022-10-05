@@ -1,0 +1,193 @@
+basePath: /
+definitions:
+  main.ItemRequest:
+    properties:
+      description:
+        example: IPhone 10X
+        type: string
+      itemCode:
+        example: "123"
+        type: string
+      lineItemId:
+        example: 1
+        type: integer
+      quantity:
+        example: 1
+        type: integer
+    required:
+    - description
+    - itemCode
+    - quantity
+    type: object
+  main.OrderRequest:
+    properties:
+      customerName:
+        example: Tom Jerry
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/main.ItemRequest'
+        type: array
+      orderedAt:
+        example: "2019-11-09T21:21:46+00:00"
+        type: string
+    required:
+    - customerName
+    - items
+    - orderedAt
+    type: object
+  main.Response:
+    properties:
+      error: {}
+      message:
+        type: string
+      payload: {}
+      status:
+        type: integer
+    type: object
+host: localhost:1323
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Assignment 2 API
+  version: "1.0"
+paths:
+  /orders:
+    get:
+      description: Get order
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response'
+      summary: Get order
+      tags:
+      - Order
+    post:
+      consumes:
+      - application/json
+      description: Create order
+      parameters:
+      - description: Order Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response'
+      summary: Create order
+      tags:
+      - Order
+  /orders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response'
+      summary: Delete order
+      tags:
+      - Order
+    put:
+      consumes:
+      - application/json
+      description: Update order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Order Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/main.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response'
+      summary: Update order
+      tags:
+      - Order
+schemes:
+- http
+swagger: "2.0"
