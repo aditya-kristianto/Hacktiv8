@@ -1,0 +1,75 @@
+<html>
+
+<head>
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+    <meta http-equiv="refresh" content="15">
+</head>
+
+<body>
+    <table>
+        <tr>
+            <th>Element</th>
+            <th>Value</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>Water</td>
+            <td id="water_value"></td>
+            <td id="water_status"></td>
+        </tr>
+        <tr>
+            <td>Wind</td>
+            <td id="wind_value"></td>
+            <td id="wind_status"></td>
+        </tr>
+    </table>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.1.min.js"
+    integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+<script>
+    $.getJSON('assets/status.json', function (data) {
+        $("#water_value").text(data.status.water + " meter")
+        $("#water_status").text(getWaterStatus(data.status.water))
+        $("#wind_value").text(data.status.wind + " meter per detik")
+        $("#wind_status").text(getWindStatus(data.status.wind))
+    });
+
+    function getWaterStatus(value) {
+        if (value < 5) {
+            return "aman";
+        } else if (value >= 6 && value <= 8) {
+            return "status siaga";
+        } else {
+            return "bahaya";
+        }
+    }
+
+    function getWindStatus(value) {
+        if (value < 6) {
+            return "aman";
+        } else if (value >= 7 && value <= 15) {
+            return "status siaga";
+        } else {
+            return "bahaya";
+        }
+    }
+</script>
+
+</html>
