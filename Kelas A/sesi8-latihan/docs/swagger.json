@@ -1,0 +1,73 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Sample API Spec for Orders",
+        "title": "Orders API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Reyhan",
+            "email": "reyhan@gmail.com"
+        },
+        "version": "v1.0"
+    },
+    "host": "localhost:4000",
+    "basePath": "/",
+    "paths": {
+        "/peope": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "person"
+                ],
+                "summary": "Get all people",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/views.GetAllPeopleSwagger"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Person": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "gorm.Model",
+                    "type": "string"
+                }
+            }
+        },
+        "views.GetAllPeopleSwagger": {
+            "type": "object",
+            "properties": {
+                "error": {},
+                "message": {
+                    "type": "string",
+                    "example": "GET_SUCCESS"
+                },
+                "payload": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Person"
+                    }
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        }
+    }
+}

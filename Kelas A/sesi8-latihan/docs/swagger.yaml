@@ -1,0 +1,49 @@
+basePath: /
+definitions:
+  models.Person:
+    properties:
+      address:
+        type: string
+      name:
+        description: gorm.Model
+        type: string
+    type: object
+  views.GetAllPeopleSwagger:
+    properties:
+      error: {}
+      message:
+        example: GET_SUCCESS
+        type: string
+      payload:
+        items:
+          $ref: '#/definitions/models.Person'
+        type: array
+      status:
+        example: 200
+        type: integer
+    type: object
+host: localhost:4000
+info:
+  contact:
+    email: reyhan@gmail.com
+    name: Reyhan
+  description: Sample API Spec for Orders
+  termsOfService: http://swagger.io/terms/
+  title: Orders API
+  version: v1.0
+paths:
+  /peope:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.GetAllPeopleSwagger'
+      summary: Get all people
+      tags:
+      - person
+swagger: "2.0"

@@ -1,0 +1,69 @@
+basePath: /
+definitions:
+  controllers.Response:
+    properties:
+      message:
+        example: STATUS_OK
+        type: string
+      payload: {}
+      status:
+        example: 200
+        type: integer
+    type: object
+  params.CreateOrder:
+    properties:
+      amount:
+        type: integer
+      brand:
+        type: string
+      productId:
+        type: integer
+      userId:
+        type: integer
+    type: object
+host: localhost:4000
+info:
+  contact:
+    email: reyhan@gmail.com
+    name: Reyhan
+  description: Sample API Spec for Orders
+  termsOfService: http://swagger.io/terms/
+  title: Orders API
+  version: v1.0
+paths:
+  /orders:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.Response'
+      summary: Get all orders
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      description: Create order by product id and user id
+      parameters:
+      - description: Create Order
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/params.CreateOrder'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.Response'
+      summary: Create order
+      tags:
+      - order
+swagger: "2.0"

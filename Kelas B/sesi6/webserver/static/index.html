@@ -1,0 +1,23 @@
+{{template "layout" .}}
+
+{{define "content"}}
+    {{range $v := .Payload}}
+    <div>
+        <div>
+            {{$v.ID}}
+        </div>
+        <div>
+            {{$v.Name}}
+        </div>
+        <div>
+            {{$v.Age}}
+            {{range $div := $v.Division}}
+                <div>
+                    Divisi : {{$div}}
+                </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
+{{end}}

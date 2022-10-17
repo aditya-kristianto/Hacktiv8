@@ -1,0 +1,149 @@
+basePath: /v1
+definitions:
+  models.Order:
+    properties:
+      createdAt:
+        example: time
+        type: string
+      customerName:
+        example: MNC B
+        type: string
+      id:
+        example: 1
+        type: integer
+      productId:
+        example: 10
+        type: integer
+      userId:
+        example: 1
+        type: integer
+    type: object
+  params.CreateOrderReq:
+    properties:
+      customerName:
+        type: string
+      productId:
+        type: integer
+    type: object
+  views.CreateOrderFailBadRequest:
+    properties:
+      message:
+        example: BAD_REQUEST
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+  views.CreateOrderSuccess:
+    properties:
+      message:
+        example: CREATED_ORDER_SUCCESS
+        type: string
+      payload:
+        $ref: '#/definitions/params.CreateOrderReq'
+      status:
+        example: 200
+        type: integer
+    type: object
+  views.GetOrdersFailNotFound:
+    properties:
+      message:
+        example: GET_ORDER_NOT_FOUND
+        type: string
+      status:
+        example: 404
+        type: integer
+    type: object
+  views.GetOrdersSuccess:
+    properties:
+      message:
+        example: GET_SUCCESS
+        type: string
+      payload:
+        items:
+          $ref: '#/definitions/models.Order'
+        type: array
+      status:
+        example: 200
+        type: integer
+    type: object
+host: localhost:4000
+info:
+  contact:
+    email: admin@hacktiv8.com
+    name: Hacktiv8
+  description: Ini adalah simple API Spec untuk Orders
+  termsOfService: https://swagger.io/terms
+  title: Orders API
+  version: v1.0
+paths:
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Get all orders in detail
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.GetOrdersSuccess'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/views.GetOrdersFailNotFound'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/views.GetOrdersFailNotFound'
+      summary: Get all orders
+      tags:
+      - order
+  /orders/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Create new orders
+      parameters:
+      - description: Create order payload
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/params.CreateOrderReq'
+      - description: path
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: X-Token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/views.CreateOrderSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/views.CreateOrderFailBadRequest'
+      summary: Create new orders
+      tags:
+      - order
+swagger: "2.0"
