@@ -1,26 +1,24 @@
 package socialmedia
 
 import (
-	"final-project/internal/app/model"
 	"final-project/internal/pkg/helper"
-	"fmt"
 
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
 	Controller struct {
-		db *gorm.DB
+		service *Service
 	}
 )
 
 func NewController(db *gorm.DB) *Controller {
 	return &Controller{
-		db: db,
+		service: NewService(db),
 	}
 }
 
@@ -32,17 +30,17 @@ func NewController(db *gorm.DB) *Controller {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param 		 body body SocialMediaRequest true "Request"
-// @Success      200  {object}  Response
-// @Success      201  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Success      201  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /socialmedias [post]
 func (s *Controller) CreateSocialmedias(c echo.Context) (err error) {
-	UserID := helper.GetUserID(c)
-	if UserID.String() == "" {
+	userID := helper.GetUserID(c)
+	if userID.String() == "" {
 		resp := new(helper.Response)
 		resp.Status = http.StatusBadRequest
 		resp.Message = "Bad Request"
@@ -62,15 +60,8 @@ func (s *Controller) CreateSocialmedias(c echo.Context) (err error) {
 		return err
 	}
 
-	data := &model.SocialMedia{
-		Name:           req.Name,
-		SocialMediaURL: req.SocialMediaURL,
-		UserID:         UserID,
-	}
-
-	err = s.db.Create(data).Error
+	socialmedia, err := s.service.CreateSocialmedia(&userID, req)
 	if err != nil {
-		fmt.Println("CreateSocialmedias 6")
 		return c.JSON(http.StatusInternalServerError, &helper.Response{
 			Status:  http.StatusInternalServerError,
 			Message: "Failed create social media",
@@ -78,7 +69,7 @@ func (s *Controller) CreateSocialmedias(c echo.Context) (err error) {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, data)
+	return c.JSON(http.StatusCreated, socialmedia)
 }
 
 // GetSocialmedias godoc
@@ -88,25 +79,22 @@ func (s *Controller) CreateSocialmedias(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /socialmedias [get]
 func (s *Controller) GetSocialmedias(c echo.Context) (err error) {
-	UserID := helper.GetUserID(c).String()
-
-	var socialmedias []model.SocialMedia
-	err = s.db.Model(&model.SocialMedia{}).Where("user_id = ?", UserID).Find(&socialmedias).Error
+	userID := helper.GetUserID(c)
 	if err != nil {
-		fmt.Println(err.Error())
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed get social media",
-			Error:   err.Error(),
-		})
+		return err
+	}
+
+	socialmedias, err := s.service.GetSocialmedia(&userID)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{
@@ -123,17 +111,20 @@ func (s *Controller) GetSocialmedias(c echo.Context) (err error) {
 // @Param 		 Authorization header string true "Bearer"
 // @Param        socialMediaId path string true "Social Media ID"
 // @Param 		 body body SocialMediaRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /socialmedias/{socialMediaId} [put]
 func (s *Controller) UpdateSocialmedias(c echo.Context) (err error) {
-	socialMediaId := c.Param("socialMediaId")
+	socialmediaId, err := uuid.Parse(c.Param("socialMediaId"))
+	if err != nil {
+		return err
+	}
 
-	UserID := helper.GetUserID(c)
+	userID := helper.GetUserID(c)
 
 	req := new(SocialMediaRequest)
 	if err = c.Bind(req); err != nil {
@@ -147,11 +138,7 @@ func (s *Controller) UpdateSocialmedias(c echo.Context) (err error) {
 		return err
 	}
 
-	var socialmedia model.SocialMedia
-	err = s.db.Model(&socialmedia).Clauses(clause.Returning{}).Where("id = ? and user_id = ?", socialMediaId, UserID).Updates(model.SocialMedia{
-		Name:           req.Name,
-		SocialMediaURL: req.SocialMediaURL,
-	}).Error
+	socialmedia, err := s.service.UpdateSocialmedia(&socialmediaId, &userID, req)
 	if err != nil {
 		return err
 	}
@@ -167,18 +154,20 @@ func (s *Controller) UpdateSocialmedias(c echo.Context) (err error) {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param        socialMediaId path string true "Social Media ID"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /socialmedias/{socialMediaId} [delete]
 func (s *Controller) DeleteSocialmedias(c echo.Context) (err error) {
-	socialMediaId := c.Param("socialMediaId")
+	socialmediaId, err := uuid.Parse(c.Param("socialMediaId"))
+	if err != nil {
+		return err
+	}
 
-	var socialmedia model.SocialMedia
-	err = s.db.Where("id = ?", socialMediaId).Delete(&socialmedia).Error
+	err = s.service.DeleteSocialmedia(&socialmediaId)
 	if err != nil {
 		return err
 	}

@@ -1,5 +1,28 @@
 basePath: /
 definitions:
+  comment.CreateCommentRequest:
+    properties:
+      message:
+        example: required
+        type: string
+      photo_id:
+        type: string
+    type: object
+  comment.UpdateCommentRequest:
+    properties:
+      message:
+        example: required
+        type: string
+    type: object
+  helper.Response:
+    properties:
+      error: {}
+      message:
+        type: string
+      payload: {}
+      status:
+        type: integer
+    type: object
   main.CreateCommentRequest:
     properties:
       message:
@@ -77,6 +100,60 @@ definitions:
         example: aditya.kristianto
         type: string
     type: object
+  photo.PhotoRequest:
+    properties:
+      caption:
+        example: echo
+        type: string
+      photo_url:
+        example: https://cdn.labstack.com/images/echo-logo.svg
+        type: string
+      title:
+        example: echo_golang
+        type: string
+    type: object
+  socialmedia.SocialMediaRequest:
+    properties:
+      name:
+        example: linkedin
+        type: string
+      social_media_url:
+        example: https://www.linkedin.com/in/aditya-kristianto
+        type: string
+    type: object
+  user.LoginRequest:
+    properties:
+      email:
+        example: aditya.kristianto@mncgroup.com
+        type: string
+      password:
+        example: hacktiv8
+        type: string
+    type: object
+  user.RegisterRequest:
+    properties:
+      age:
+        example: 31
+        type: integer
+      email:
+        example: aditya.kristianto@mncgroup.com
+        type: string
+      password:
+        example: hacktiv8
+        type: string
+      username:
+        example: aditya.kristianto
+        type: string
+    type: object
+  user.UpdateUserRequest:
+    properties:
+      email:
+        example: aditya.kristianto@mncgroup.com
+        type: string
+      username:
+        example: aditya.kristianto
+        type: string
+    type: object
 host: localhost:1323
 info:
   contact:
@@ -108,23 +185,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Get comment
       tags:
       - Comments
@@ -143,34 +224,38 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.CreateCommentRequest'
+          $ref: '#/definitions/comment.CreateCommentRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Create comment
       tags:
       - Comments
@@ -196,23 +281,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Delete comment
       tags:
       - Comments
@@ -236,30 +325,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.UpdateCommentRequest'
+          $ref: '#/definitions/comment.UpdateCommentRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Update comment
       tags:
       - Comments
@@ -280,23 +373,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Get photo
       tags:
       - Photos
@@ -315,30 +412,38 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.PhotoRequest'
+          $ref: '#/definitions/photo.PhotoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Create photo
       tags:
       - Photos
@@ -364,23 +469,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Delete photo
       tags:
       - Photos
@@ -404,30 +513,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.PhotoRequest'
+          $ref: '#/definitions/photo.PhotoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Update photo
       tags:
       - Photos
@@ -448,23 +561,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Get social media
       tags:
       - SocialMedias
@@ -483,34 +600,38 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.SocialMediaRequest'
+          $ref: '#/definitions/socialmedia.SocialMediaRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Create social media
       tags:
       - SocialMedias
@@ -536,23 +657,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Delete social media
       tags:
       - SocialMedias
@@ -576,30 +701,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.SocialMediaRequest'
+          $ref: '#/definitions/socialmedia.SocialMediaRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Update social media
       tags:
       - SocialMedias
@@ -620,23 +749,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Delete user
       tags:
       - Users
@@ -655,30 +788,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.UpdateUserRequest'
+          $ref: '#/definitions/user.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Update user
       tags:
       - Users
@@ -693,26 +830,30 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.LoginRequest'
+          $ref: '#/definitions/user.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Login
       tags:
       - Users
@@ -727,30 +868,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/main.RegisterRequest'
+          $ref: '#/definitions/user.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
         "405":
           description: Method Not Allowed
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/main.Response'
+            $ref: '#/definitions/helper.Response'
       summary: Register
       tags:
       - Users

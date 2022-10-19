@@ -8,11 +8,12 @@ import (
 
 type (
 	Photo struct {
-		ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+		ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 		Title     string    `json:"title" validate:"required"`
 		Caption   string    `json:"caption" validate:"required"`
 		PhotoURL  string    `json:"photo_url" validate:"required"`
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		UserID    uuid.UUID `json:"user_id"`
+		CreatedAt time.Time `json:"updated_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 	}
 )

@@ -6,22 +6,20 @@ import (
 	"final-project/internal/app/model"
 	"final-project/internal/pkg/helper"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
 	Controller struct {
-		db *gorm.DB
+		service *Service
 	}
 )
 
 func NewController(db *gorm.DB) *Controller {
 	return &Controller{
-		db: db,
+		service: NewService(db),
 	}
 }
 
@@ -33,18 +31,16 @@ func NewController(db *gorm.DB) *Controller {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param 		 body body CreateCommentRequest true "Request"
-// @Success      200  {object}  Response
-// @Success      201  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Success      201  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /comments [post]
 func (m *Controller) CreateComments(c echo.Context) (err error) {
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(*helper.JwtCustomClaims)
-	UserID := claims.UserID
+	userID := helper.GetUserID(c)
 
 	req := new(CreateCommentRequest)
 	if err = c.Bind(req); err != nil {
@@ -58,30 +54,16 @@ func (m *Controller) CreateComments(c echo.Context) (err error) {
 		return err
 	}
 
-	photoID, err := uuid.Parse(req.PhotoID)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, &helper.Response{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-			Error:   err.Error(),
-		})
-	}
-
-	data := &model.Comment{
-		Message: req.Message,
-		PhotoID: photoID,
-		UserID:  UserID,
-	}
-	err = m.db.Create(data).Error
+	comment, err := m.service.CreateComment(&userID, req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &helper.Response{
 			Status:  http.StatusInternalServerError,
-			Message: "Failed register",
+			Message: "Failed create comment",
 			Error:   err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusCreated, data)
+	return c.JSON(http.StatusCreated, comment)
 }
 
 // GetComments godoc
@@ -91,20 +73,17 @@ func (m *Controller) CreateComments(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /comments [get]
 func (m *Controller) GetComments(c echo.Context) (err error) {
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(*helper.JwtCustomClaims)
-	UserID := claims.UserID
+	userID := helper.GetUserID(c)
 
-	var comments []model.Comment
-	err = m.db.Model(&model.Comment{}).Where("user_id = ?", UserID).Find(&comments).Error
+	comments, err := m.service.GetComment(&userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &helper.Response{
 			Status:  http.StatusInternalServerError,
@@ -125,15 +104,18 @@ func (m *Controller) GetComments(c echo.Context) (err error) {
 // @Param 		 Authorization header string true "Bearer"
 // @Param        commentId path string true "Comment ID"
 // @Param 		 body body UpdateCommentRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /comments/{commentId} [put]
 func (m *Controller) UpdateComments(c echo.Context) (err error) {
-	commentId := c.Param("commentId")
+	commentId, err := uuid.Parse(c.Param("commentId"))
+	if err != nil {
+		return err
+	}
 
 	req := new(UpdateCommentRequest)
 	if err = c.Bind(req); err != nil {
@@ -147,10 +129,10 @@ func (m *Controller) UpdateComments(c echo.Context) (err error) {
 		return err
 	}
 
-	var comment model.Comment
-	err = m.db.Model(&comment).Clauses(clause.Returning{}).Where("id = ?", commentId).Updates(model.Comment{
+	data := model.Comment{
 		Message: req.Message,
-	}).Error
+	}
+	comment, err := m.service.UpdateComment(&commentId, &data)
 	if err != nil {
 		return err
 	}
@@ -166,18 +148,20 @@ func (m *Controller) UpdateComments(c echo.Context) (err error) {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param        commentId path string true "Comment ID"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /comments/{commentId} [delete]
 func (m *Controller) DeleteComments(c echo.Context) (err error) {
-	commentId := c.Param("commentId")
+	commentId, err := uuid.Parse(c.Param("commentId"))
+	if err != nil {
+		return err
+	}
 
-	var comment model.Comment
-	err = m.db.Where("id = ?", commentId).Delete(&comment).Error
+	err = m.service.DeleteComment(&commentId)
 	if err != nil {
 		return err
 	}

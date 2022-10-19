@@ -2,27 +2,23 @@ package user
 
 import (
 	"net/http"
-	"time"
 
 	"final-project/internal/app/model"
 	"final-project/internal/pkg/helper"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
 	Controller struct {
-		db *gorm.DB
+		service *Service
 	}
 )
 
 func NewController(db *gorm.DB) *Controller {
 	return &Controller{
-		db: db,
+		service: NewService(db),
 	}
 }
 
@@ -33,12 +29,12 @@ func NewController(db *gorm.DB) *Controller {
 // @Accept       json
 // @Produce      json
 // @Param 		 body body RegisterRequest true "Request"
-// @Success      200  {object}  Response
-// @Success      201  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Success      201  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /users/register [post]
 func (u *Controller) Register(c echo.Context) (err error) {
 	req := new(RegisterRequest)
@@ -53,22 +49,7 @@ func (u *Controller) Register(c echo.Context) (err error) {
 		return err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed register",
-			Error:   err.Error(),
-		})
-	}
-
-	data := &model.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Age:      req.Age,
-	}
-	err = u.db.Create(data).Error
+	err = u.service.Register(req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &helper.Response{
 			Status:  http.StatusInternalServerError,
@@ -87,11 +68,11 @@ func (u *Controller) Register(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param 		 body body LoginRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /users/login [post]
 func (u *Controller) Login(c echo.Context) (err error) {
 	req := new(LoginRequest)
@@ -106,43 +87,17 @@ func (u *Controller) Login(c echo.Context) (err error) {
 		return err
 	}
 
-	var user model.User
-	err = u.db.Model(&model.User{}).Where("email = ?", req.Email).Find(&user).Error
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed get order",
-			Error:   err.Error(),
-		})
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	token, err := u.service.Login(req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &helper.Response{
 			Status:  http.StatusBadRequest,
-			Message: "Email or password is incorrect",
+			Message: "Failed login",
 			Error:   err.Error(),
 		})
 	}
 
-	claims := &helper.JwtCustomClaims{
-		user.ID,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
-	}
-
-	// Create token with claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
-	if err != nil {
-		return err
-	}
-
 	return c.JSON(http.StatusOK, echo.Map{
-		"token": t,
+		"token": token,
 	})
 }
 
@@ -154,12 +109,12 @@ func (u *Controller) Login(c echo.Context) (err error) {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer Token"
 // @Param 		 body body UpdateUserRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /users [put]
 func (u *Controller) UpdateUser(c echo.Context) (err error) {
 	req := new(UpdateUserRequest)
@@ -174,13 +129,12 @@ func (u *Controller) UpdateUser(c echo.Context) (err error) {
 		return err
 	}
 
-	UserID := helper.GetUserID(c)
-
-	var user model.User
-	err = u.db.Model(&user).Clauses(clause.Returning{}).Where("id = ?", UserID).Updates(model.User{
+	userID := helper.GetUserID(c)
+	data := model.User{
 		Email:    req.Email,
 		Username: req.Username,
-	}).Error
+	}
+	result, err := u.service.UpdateUser(&userID, &data)
 	if err != nil {
 		resp := new(helper.Response)
 		resp.Status = http.StatusBadRequest
@@ -189,7 +143,7 @@ func (u *Controller) UpdateUser(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, resp)
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return c.JSON(http.StatusOK, result)
 }
 
 // DeleteUser godoc
@@ -199,18 +153,17 @@ func (u *Controller) UpdateUser(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /users [delete]
 func (u *Controller) DeleteUser(c echo.Context) (err error) {
-	UserID := helper.GetUserID(c)
+	userID := helper.GetUserID(c)
 
-	var user model.User
-	err = u.db.Where("id = ?", UserID).Delete(&user).Error
+	u.service.DeleteUser(&userID)
 	if err != nil {
 		return err
 	}

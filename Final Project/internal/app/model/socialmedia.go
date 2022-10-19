@@ -8,10 +8,10 @@ import (
 
 type (
 	SocialMedia struct {
-		ID             uuid.UUID `gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+		ID             uuid.UUID `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 		Name           string    `json:"name" validate:"required"`
 		SocialMediaURL string    `json:"social_media_url" validate:"required"`
 		UserID         uuid.UUID `json:"user_id"`
-		CreatedAt      time.Time
+		CreatedAt      time.Time `json:"created_at"`
 	}
 )

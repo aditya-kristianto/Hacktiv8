@@ -6,20 +6,20 @@ import (
 	"final-project/internal/app/model"
 	"final-project/internal/pkg/helper"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
 	Controller struct {
-		db *gorm.DB
+		service *Service
 	}
 )
 
 func NewController(db *gorm.DB) *Controller {
 	return &Controller{
-		db: db,
+		service: NewService(db),
 	}
 }
 
@@ -31,14 +31,17 @@ func NewController(db *gorm.DB) *Controller {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param 		 body body PhotoRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Success      201  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /photos [post]
 func (p *Controller) CreatePhotos(c echo.Context) (err error) {
+	userID := helper.GetUserID(c)
+
 	req := new(PhotoRequest)
 	if err = c.Bind(req); err != nil {
 		resp := new(helper.Response)
@@ -51,21 +54,16 @@ func (p *Controller) CreatePhotos(c echo.Context) (err error) {
 		return err
 	}
 
-	data := &model.Photo{
-		Title:    req.Title,
-		Caption:  req.Caption,
-		PhotoURL: req.PhotoURL,
-	}
-	err = p.db.Create(data).Error
+	photo, err := p.service.CreatePhoto(&userID, req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed register",
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed create photo",
 			Error:   err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusCreated, data)
+	return c.JSON(http.StatusCreated, photo)
 }
 
 // GetPhotos godoc
@@ -75,16 +73,17 @@ func (p *Controller) CreatePhotos(c echo.Context) (err error) {
 // @Accept       json
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /photos [get]
 func (p *Controller) GetPhotos(c echo.Context) (err error) {
-	var photos []model.Photo
-	err = p.db.Model(&model.Photo{}).Find(&photos).Error
+	userID := helper.GetUserID(c)
+
+	photos, err := p.service.GetPhoto(&userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &helper.Response{
 			Status:  http.StatusInternalServerError,
@@ -105,15 +104,18 @@ func (p *Controller) GetPhotos(c echo.Context) (err error) {
 // @Param 		 Authorization header string true "Bearer"
 // @Param        photoId path string true "Photo ID"
 // @Param 		 body body PhotoRequest true "Request"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /photos/{photoId} [put]
 func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
-	photoId := c.Param("photoId")
+	photoId, err := uuid.Parse(c.Param("photoId"))
+	if err != nil {
+		return err
+	}
 
 	req := new(PhotoRequest)
 	if err = c.Bind(req); err != nil {
@@ -127,12 +129,12 @@ func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
 		return err
 	}
 
-	var photo model.Photo
-	err = p.db.Model(&photo).Clauses(clause.Returning{}).Where("id = ?", photoId).Updates(model.Photo{
+	data := model.Photo{
 		Title:    req.Title,
 		Caption:  req.Caption,
 		PhotoURL: req.PhotoURL,
-	}).Error
+	}
+	photo, err := p.service.UpdatePhoto(&photoId, &data)
 	if err != nil {
 		return err
 	}
@@ -148,18 +150,20 @@ func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
 // @Produce      json
 // @Param 		 Authorization header string true "Bearer"
 // @Param        photoId path string true "Photo ID"
-// @Success      200  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      401  {object}  Response
-// @Failure      404  {object}  Response
-// @Failure      405  {object}  Response
-// @Failure      500  {object}  Response
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      401  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      405  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /photos/{photoId} [delete]
 func (p *Controller) DeletePhotos(c echo.Context) (err error) {
-	photoId := c.Param("photoId")
+	photoId, err := uuid.Parse(c.Param("photoId"))
+	if err != nil {
+		return err
+	}
 
-	var photo model.Photo
-	err = p.db.Where("id = ?", photoId).Delete(&photo).Error
+	err = p.service.DeletePhoto(&photoId)
 	if err != nil {
 		return err
 	}
