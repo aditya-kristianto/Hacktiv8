@@ -27,17 +27,29 @@ func (c *Repository) Create(data *model.Comment) (*model.Comment, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return data, nil
 }
 
 func (c *Repository) Read(userID *uuid.UUID) (*[]model.Comment, error) {
 	var comments []model.Comment
-	err := c.db.Model(&model.Comment{}).Where("user_id = ?", userID).Find(&comments).Error
+	err := c.db.Raw("SELECT comments.*, \"User\".id AS \"User__id\", \"User\".email AS \"User__email\", \"User\".username AS \"User__username\", \"Photo\".id AS \"Photo__id\", \"Photo\".title AS \"Photo__title\", \"Photo\".caption AS \"Photo__caption\", \"Photo\".photo_url AS \"Photo__photo_url\", \"Photo\".user_id AS \"Photo__user_id\" FROM comments LEFT JOIN users \"User\" ON comments.user_id = \"User\".id LEFT JOIN photos \"Photo\" ON comments.photo_id = \"Photo\".id WHERE comments.user_id = ?", userID).Scan(&comments).Error
+
+	// err := c.db.Model(&model.Comment{}).Where("user_id = ?", userID).Find(&comments).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return &comments, nil
+}
+
+func (c *Repository) ReadByID(commentID *uuid.UUID, userID *uuid.UUID) (*model.Comment, error) {
+	var comment model.Comment
+	err := c.db.Model(&model.Comment{}).Where("id = ? and user_id = ?", commentID, userID).Find(&comment).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &comment, nil
 }
 
 func (c *Repository) Update(commentID *uuid.UUID, data *model.Comment) (*model.Comment, error) {

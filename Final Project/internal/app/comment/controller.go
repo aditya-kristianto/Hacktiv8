@@ -56,8 +56,8 @@ func (m *Controller) CreateComments(c echo.Context) (err error) {
 
 	comment, err := m.service.CreateComment(&userID, req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
 			Message: "Failed create comment",
 			Error:   err.Error(),
 		})
@@ -85,8 +85,8 @@ func (m *Controller) GetComments(c echo.Context) (err error) {
 
 	comments, err := m.service.GetComment(&userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
 			Message: "Failed get comments",
 			Error:   err.Error(),
 		})
@@ -156,14 +156,19 @@ func (m *Controller) UpdateComments(c echo.Context) (err error) {
 // @Failure      500  {object}  helper.Response
 // @Router       /comments/{commentId} [delete]
 func (m *Controller) DeleteComments(c echo.Context) (err error) {
+	userID := helper.GetUserID(c)
 	commentId, err := uuid.Parse(c.Param("commentId"))
 	if err != nil {
 		return err
 	}
 
-	err = m.service.DeleteComment(&commentId)
+	err = m.service.DeleteComment(&commentId, &userID)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed delete comment",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, helper.Response{

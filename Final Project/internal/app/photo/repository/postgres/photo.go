@@ -32,12 +32,22 @@ func (p *Repository) Create(data *model.Photo) (*model.Photo, error) {
 
 func (p *Repository) Read(userID *uuid.UUID) (*[]model.Photo, error) {
 	var photos []model.Photo
-	err := p.db.Model(&model.Photo{}).Where("user_id = ?", userID).Find(&photos).Error
+	err := p.db.Raw("SELECT photos.*, NULL AS \"User__id\", \"User\".email AS \"User__email\", \"User\".username AS \"User__username\" FROM photos LEFT JOIN users \"User\" ON photos.user_id = \"User\".id WHERE user_id = ?", userID).Scan(&photos).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return &photos, nil
+}
+
+func (p *Repository) ReadByPhotoID(photoID *uuid.UUID, userID *uuid.UUID) (*model.Photo, error) {
+	var photo model.Photo
+	err := p.db.Model(&photo).Where("id = ? and user_id = ?", photoID, userID).Scan(&photo).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &photo, nil
 }
 
 func (p *Repository) Update(photoID *uuid.UUID, data *model.Photo) (*model.Photo, error) {

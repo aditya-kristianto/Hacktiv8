@@ -14,7 +14,7 @@ type (
 		Message   string    `json:"message" validate:"required"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
-		User      User      `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-		Photo     Photo     `gorm:"foreignKey:PhotoID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+		User      User      `json:"-" gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+		Photo     Photo     `json:"-" gorm:"foreignKey:PhotoID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	}
 )
