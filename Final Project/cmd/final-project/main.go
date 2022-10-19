@@ -1,14 +1,12 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"final-project/internal/app"
 	"final-project/internal/pkg/db"
 	"final-project/internal/pkg/helper"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/swaggo/echo-swagger"
@@ -32,10 +30,10 @@ import (
 // @BasePath /
 // @schemes http
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	postgresDB := db.NewDB()
 
@@ -50,12 +48,6 @@ func main() {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
-	// Configure middleware with the custom claims type
-	// config := middleware.JWTConfig{
-	// 	Claims:     &helper.JwtCustomClaims{},
-	// 	SigningKey: []byte("secret"),
-	// }
 
 	r := app.NewRouter(postgresDB)
 	r.Init(e)
