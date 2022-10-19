@@ -32,12 +32,22 @@ func (s *Repository) Create(data *model.SocialMedia) (*model.SocialMedia, error)
 
 func (s *Repository) Read(userID *uuid.UUID) (*[]model.SocialMedia, error) {
 	var socialmedias []model.SocialMedia
-	err := s.db.Model(&model.SocialMedia{}).Where("user_id = ?", userID).Find(&socialmedias).Error
+	err := s.db.Raw("SELECT social_media.*, \"User\".id AS \"User__id\", \"User\".username AS \"User__username\" FROM social_media LEFT JOIN users \"User\" ON social_media.user_id = \"User\".id WHERE user_id = ?", userID).Scan(&socialmedias).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return &socialmedias, nil
+}
+
+func (s *Repository) ReadByID(socialmediaID *uuid.UUID, userID *uuid.UUID) (*model.SocialMedia, error) {
+	var socialmedia model.SocialMedia
+	err := s.db.Model(&socialmedia).Where("id = ? and user_id = ?", socialmediaID, userID).Scan(&socialmedia).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &socialmedia, nil
 }
 
 func (s *Repository) Update(socialmediaID *uuid.UUID, userID *uuid.UUID, data *model.SocialMedia) (*model.SocialMedia, error) {

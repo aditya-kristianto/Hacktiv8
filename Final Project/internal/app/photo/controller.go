@@ -85,8 +85,8 @@ func (p *Controller) GetPhotos(c echo.Context) (err error) {
 
 	photos, err := p.service.GetPhoto(&userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
 			Message: "Failed get photos",
 			Error:   err.Error(),
 		})
@@ -114,7 +114,11 @@ func (p *Controller) GetPhotos(c echo.Context) (err error) {
 func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
 	photoId, err := uuid.Parse(c.Param("photoId"))
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed update photo",
+			Error:   err.Error(),
+		})
 	}
 
 	req := new(PhotoRequest)
@@ -136,7 +140,11 @@ func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
 	}
 	photo, err := p.service.UpdatePhoto(&photoId, &data)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed update photo",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, photo)
@@ -160,12 +168,20 @@ func (p *Controller) UpdatePhotos(c echo.Context) (err error) {
 func (p *Controller) DeletePhotos(c echo.Context) (err error) {
 	photoId, err := uuid.Parse(c.Param("photoId"))
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed delete photo",
+			Error:   err.Error(),
+		})
 	}
 
 	err = p.service.DeletePhoto(&photoId)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed delete photo",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, helper.Response{

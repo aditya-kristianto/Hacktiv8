@@ -134,7 +134,11 @@ func (m *Controller) UpdateComments(c echo.Context) (err error) {
 	}
 	comment, err := m.service.UpdateComment(&commentId, &data)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed update comment",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, comment)

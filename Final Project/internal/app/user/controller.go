@@ -51,8 +51,8 @@ func (u *Controller) Register(c echo.Context) (err error) {
 
 	err = u.service.Register(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &helper.Response{
-			Status:  http.StatusInternalServerError,
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
 			Message: "Failed register",
 			Error:   err.Error(),
 		})
@@ -136,11 +136,11 @@ func (u *Controller) UpdateUser(c echo.Context) (err error) {
 	}
 	result, err := u.service.UpdateUser(&userID, &data)
 	if err != nil {
-		resp := new(helper.Response)
-		resp.Status = http.StatusBadRequest
-		resp.Message = "Bad Request"
-		resp.Error = err.Error()
-		return echo.NewHTTPError(http.StatusBadRequest, resp)
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed update user",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, result)
@@ -165,7 +165,11 @@ func (u *Controller) DeleteUser(c echo.Context) (err error) {
 
 	u.service.DeleteUser(&userID)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, &helper.Response{
+			Status:  http.StatusBadRequest,
+			Message: "Failed delete user",
+			Error:   err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, helper.Response{

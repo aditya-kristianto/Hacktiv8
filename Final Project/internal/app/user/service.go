@@ -91,7 +91,16 @@ func (s *Service) Login(req *LoginRequest) (string, error) {
 }
 
 func (s *Service) UpdateUser(userID *uuid.UUID, data *model.User) (*model.User, error) {
-	user, err := s.repository.Update(userID, data)
+	user, err := s.repository.ReadByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.ID == uuid.Nil {
+		return nil, errors.New("Unauthorized")
+	}
+
+	user, err = s.repository.Update(userID, data)
 	if err != nil {
 		return nil, err
 	}

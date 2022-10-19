@@ -40,6 +40,16 @@ func (u *Repository) Read(email string) (*model.User, error) {
 	return &user, nil
 }
 
+func (u *Repository) ReadByID(userID *uuid.UUID) (*model.User, error) {
+	var user model.User
+	err := u.db.Model(&model.User{}).Where("id = ?", userID).Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (u *Repository) Update(userID *uuid.UUID, data *model.User) (*model.User, error) {
 	var user model.User
 	err := u.db.Model(&user).Clauses(clause.Returning{}).Where("id = ?", userID).Updates(data).Error

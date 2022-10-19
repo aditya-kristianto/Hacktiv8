@@ -9,7 +9,8 @@ import (
 type (
 	Repository interface {
 		Create(*model.SocialMedia) (*model.SocialMedia, error)
-		Read(userID *uuid.UUID) (*[]model.SocialMedia, error)
+		Read(*uuid.UUID) (*[]model.SocialMedia, error)
+		ReadByID(*uuid.UUID, *uuid.UUID) (*model.SocialMedia, error)
 		Update(*uuid.UUID, *uuid.UUID, *model.SocialMedia) (*model.SocialMedia, error)
 		Delete(*uuid.UUID) (*model.SocialMedia, error)
 	}
