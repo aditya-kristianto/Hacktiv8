@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"final-project/internal/app"
 	"final-project/internal/pkg/db"
@@ -26,7 +27,7 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:1323
+// @host loca
 // @BasePath /
 // @schemes http
 func main() {
@@ -52,5 +53,7 @@ func main() {
 	r := app.NewRouter(postgresDB)
 	r.Init(e)
 
-	e.Logger.Fatal(e.Start(":1323"))
+	appPort := os.Getenv("PORT")
+
+	e.Logger.Fatal(e.Start(":" + appPort))
 }
